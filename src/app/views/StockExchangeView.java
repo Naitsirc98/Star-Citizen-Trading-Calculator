@@ -24,7 +24,11 @@ public class StockExchangeView extends VBox {
         setStyle("-fx-background-color: rgb(50, 50, 50);");
         setAlignment(Pos.TOP_CENTER);
         
-        getChildren().add(Utils.text("Stock Exchange", Font.font("Consolas", 50), Color.DARKCYAN));
+        getChildren().addAll(
+                Utils.text("Stock Exchange", Font.font("Consolas", 50), Color.DARKCYAN),
+                new Text("\n"),
+                Utils.text("See live purchase and sales prices over the galaxy", Font.font(24), Color.WHITESMOKE)
+        );
         
         createLiveLineChart();
         
@@ -44,6 +48,7 @@ public class StockExchangeView extends VBox {
     }
     
     private void updateDateTime() {
+
         String text = LocalDateTime.now().format(
                     DateTimeFormatter.ISO_LOCAL_DATE_TIME).replace('T', ' ');
         date.setText(text.substring(0, text.lastIndexOf('.')));

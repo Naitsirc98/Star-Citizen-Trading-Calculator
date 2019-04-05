@@ -1,6 +1,11 @@
 package app.views;
 
+import game.Commodity;
+import game.Database;
+import game.Purchase;
+import game.Sale;
 import java.util.ArrayList;
+import java.util.List;
 import javafx.animation.AnimationTimer;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
@@ -15,22 +20,14 @@ import javafx.scene.chart.Axis;
 
 public class LiveChart extends LineChart<Number, Number> {
 
-    private static final int MAX_DATA_POINTS = 50;
+    private static final int MAX_DATA_POINTS = 150;
     private int xSeriesData = 0;
     private ExecutorService executor;
     private String table;
     
-    private XYChart.Series<Number, Number> series1 = new XYChart.Series<>();
-    private XYChart.Series<Number, Number> series2 = new XYChart.Series<>();
-    private XYChart.Series<Number, Number> series3 = new XYChart.Series<>();
-    
-    private ConcurrentLinkedQueue<Number> dataQ1 = new ConcurrentLinkedQueue<>();
-    private ConcurrentLinkedQueue<Number> dataQ2 = new ConcurrentLinkedQueue<>();
-    private ConcurrentLinkedQueue<Number> dataQ3 = new ConcurrentLinkedQueue<>();
-    
     private ArrayList< XYChart.Series<Number, Number>> series;
     private ArrayList<ConcurrentLinkedQueue<Number>> data;
-    private Float[] values = new Float[20];
+    private Float[] values;
 
     private NumberAxis xAxis;
 
@@ -62,11 +59,12 @@ public class LiveChart extends LineChart<Number, Number> {
         series = new ArrayList<>();
         data = new ArrayList<>();
         
+        List<?> list = getValues();
+        
         // TODO: generate series from database
-        for(int i = 0;i < 20;i++) {
-            values[i] = (float)(Math.random() * 40.0f);
+        for(int i = 0;i < values.length;i++) {
             series.add(new Series<>());
-            series.get(i).setName(table+"::"+i);
+            series.get(i).setName(list.get(i).toString());
             data.add(new ConcurrentLinkedQueue<>());
         }
         
@@ -91,6 +89,37 @@ public class LiveChart extends LineChart<Number, Number> {
         
     }
 
+    private List<?> getValues() {
+        
+        if(table.equals("Purchasing")) {
+            
+            List<Purchase> ps = Database.getPurchases();
+            
+            values = new Float[ps.size()];
+            
+            for(int i = 0;i < values.length;i++) {
+                values[i] = (float) ps.get(i).getPrice();
+            }
+            
+            return ps;
+            
+        } else if(table.equals("Sales")) {
+            
+            List<Sale> ps = Database.getSales();
+            
+            values = new Float[ps.size()];
+            
+            for(int i = 0;i < values.length;i++) {
+                values[i] = (float) ps.get(i).getPrice();
+            }
+            
+            return ps;
+            
+        }
+        
+        throw new IllegalArgumentException("Unknown table " + table);
+    }
+
     private class AddToQueue implements Runnable {
 
         public void run() {
@@ -100,10 +129,11 @@ public class LiveChart extends LineChart<Number, Number> {
                 // dataQ2.add(Math.random());
                 // dataQ3.add(Math.random());
                 for(int i = 0;i < values.length;i++) {
-                    data.get(i).add(Math.abs(values[i] + new Float(Math.random()-Math.random())*10));
+                    data.get(i).add(Math.abs(values[i] 
+                            += new Float(Math.random()-Math.random())*10));
                 }
                 
-                Thread.sleep(800);
+                Thread.sleep(1000);
                 executor.execute(this);
             } catch (InterruptedException ex) {
                 ex.printStackTrace();
@@ -129,7 +159,7 @@ public class LiveChart extends LineChart<Number, Number> {
     }
 
     private void addDataToSeries() {
-        for (int i = 0; i < 20; i++) { //-- add 20 numbers to the plot+
+        for (int i = 0; i < 50; i++) { //-- add 20 numbers to the plot+
             if (data.get(i).isEmpty()) {
                 break;
             }

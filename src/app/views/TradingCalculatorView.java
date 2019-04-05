@@ -1,8 +1,12 @@
 package app.views;
 
 import app.ComboBoxItemWrapper;
+import game.Database;
+import javafx.event.ActionEvent;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
@@ -25,9 +29,12 @@ import javafx.scene.text.Text;
 public class TradingCalculatorView extends VBox {
 
     private ListView<String> resultsList;
+    private ComboBox<ComboBoxItemWrapper<String>> locationFilter;
+    private ComboBox<ComboBoxItemWrapper<String>> shipFilter;
+    private ComboBox<ComboBoxItemWrapper<String>> commodityFilter;
 
     public TradingCalculatorView() {
-        // setAlignment(Pos.TOP_CENTER);
+        setAlignment(Pos.TOP_CENTER);
         setStyle("-fx-background-color: rgb(50, 50, 50);");
         createContents();
     }
@@ -44,7 +51,7 @@ public class TradingCalculatorView extends VBox {
 
         VBox header = new VBox();
         header.setSpacing(30);
-        // header.setAlignment(Pos.TOP_CENTER);
+        header.setAlignment(Pos.TOP_CENTER);
 
         header.getChildren().addAll(
                 Utils.text("Star Citizen Trading Calculator", Font.font("Consolas", 50), Color.DARKCYAN),
@@ -75,11 +82,14 @@ public class TradingCalculatorView extends VBox {
                 Font.font(24), Color.WHITE);
 
         Parent cb1 = checkComboBox("Locations", "Locations", "Name");
+        locationFilter = (ComboBox<ComboBoxItemWrapper<String>>) cb1.getChildrenUnmodifiable().get(1);
         Parent cb2 = checkComboBox("Ships", "Ships", "Size");
+        shipFilter = (ComboBox<ComboBoxItemWrapper<String>>) cb2.getChildrenUnmodifiable().get(1);
         Parent cb3 = checkComboBox("Commodities", "Commodities", "Name");
+        commodityFilter = (ComboBox<ComboBoxItemWrapper<String>>) cb3.getChildrenUnmodifiable().get(1);
 
         HBox hbox = new HBox();
-        // hbox.setAlignment(Pos.CENTER);
+        hbox.setAlignment(Pos.CENTER);
         hbox.setSpacing(200);
 
         hbox.getChildren().addAll(cb1, cb2, cb3);
@@ -101,14 +111,9 @@ public class TradingCalculatorView extends VBox {
         ComboBox<ComboBoxItemWrapper<String>> cb = new ComboBox<>();
         cb.setPromptText("Select " + table);
 
-        /* TODO: rellenar el combobox con los valores de columna en la tabla dada
-		 * Sustituir esto*/ {
-            final String prefix = table + "::" + column + " ";
-
-            for (int i = 1; i <= 5; i++) {
-                cb.getItems().add(new ComboBoxItemWrapper<>(prefix + i));
-            }
-        }
+        Database.getTable(table).forEach(obj -> {
+            cb.getItems().add(new ComboBoxItemWrapper<>(obj.toString()));
+        });
 
         container.getChildren().addAll(label, cb);
 
@@ -120,7 +125,9 @@ public class TradingCalculatorView extends VBox {
         Parent container = comboBox(name, table, column);
 
         @SuppressWarnings("unchecked")
-        ComboBox<ComboBoxItemWrapper<String>> cb = (ComboBox<ComboBoxItemWrapper<String>>) container.getChildrenUnmodifiable().get(1);
+        ComboBox<ComboBoxItemWrapper<String>> cb =
+                (ComboBox<ComboBoxItemWrapper<String>>) 
+                container.getChildrenUnmodifiable().get(1);
 
         cb.setCellFactory(param -> {
 
@@ -192,6 +199,25 @@ public class TradingCalculatorView extends VBox {
         Parent startingMoney = numericTextfield("Starting money");
 
         Button button = new Button("Calculate");
+        
+        button.setOnAction((ActionEvent e) -> {
+            
+            ComboBox<ComboBoxItemWrapper<String>> cb = (ComboBox<ComboBoxItemWrapper<String>>)
+                    selectShip.getChildrenUnmodifiable().get(1);
+            
+            if(cb.getSelectionModel().getSelectedItem() == null) {
+                Alert alert = new Alert(AlertType.ERROR);
+                alert.setTitle("Error");
+                alert.setHeaderText("Ship not selected");
+                alert.setContentText("You have to choose a ship");
+                alert.showAndWait();
+                return;
+            }
+            
+            String ship = cb.getSelectionModel().getSelectedItem().getItem();
+            
+        });
+        
 
         HBox hbox = new HBox();
         hbox.setSpacing(200);

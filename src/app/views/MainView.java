@@ -57,9 +57,8 @@ public class MainView extends BorderPane {
         pane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         pane.setFitToHeight(true);
         pane.setFitToWidth(true);
-        pane.setVvalue(-10.0);
         setCenter(pane);
-        pane.requestFocus();
+        requestFocus();
     }
     
 }
