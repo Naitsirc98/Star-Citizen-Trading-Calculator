@@ -33,5 +33,22 @@
         <delete dir="${build.generated.dir}/jax-wsCache/xCurrencies"/>
         <delete dir="${build.generated.sources.dir}/jax-ws/ext/ws/currency"/>
     </target>
-    <target name="wsimport-client-generate" depends="wsimport-client-xCurrencies"/>
+    <target name="wsimport-client-PathFindingWS" depends="wsimport-init">
+        <mkdir dir="${build.generated.dir}/jax-wsCache/PathFindingWS"/>
+        <property name="wsdl-PathFindingWS" location="xml-resources/web-service-references/PathFindingWS/wsdl/ws.docencia.ces.siani.es/a07/path-finding-ws/PathFindingWS.wsdl"/>
+        <wsimport sourcedestdir="${build.generated.dir}/jax-wsCache/PathFindingWS" destdir="${build.generated.dir}/jax-wsCache/PathFindingWS" wsdl="${wsdl-PathFindingWS}" catalog="catalog.xml" encoding="${source.encoding}" extension="true" verbose="true" fork="false" wsdlLocation="http://ws.docencia.ces.siani.es/a07/path-finding-ws/PathFindingWS?WSDL" xnocompile="true" xendorsed="true" package="ext.ws">
+            <depends file="${wsdl-PathFindingWS}"/>
+            <produces dir="${build.generated.dir}/jax-wsCache/PathFindingWS"/>
+        </wsimport>
+        <copy todir="${build.generated.sources.dir}/jax-ws">
+            <fileset dir="${build.generated.dir}/jax-wsCache/PathFindingWS">
+                <include name="**/*.java"/>
+            </fileset>
+        </copy>
+    </target>
+    <target name="wsimport-client-clean-PathFindingWS" depends="-init-project">
+        <delete dir="${build.generated.dir}/jax-wsCache/PathFindingWS"/>
+        <delete dir="${build.generated.sources.dir}/jax-ws/ext/ws"/>
+    </target>
+    <target name="wsimport-client-generate" depends="wsimport-client-xCurrencies, wsimport-client-PathFindingWS"/>
 </project>

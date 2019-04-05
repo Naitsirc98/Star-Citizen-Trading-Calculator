@@ -1,10 +1,17 @@
 package app.views;
 
 import app.ComboBoxItemWrapper;
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import ext.ws.DBShips;
 import ext.ws.currency.ExchangeConversion;
 import game.Database;
+import game.Ship;
+import game.TradeRoute;
 import java.net.Authenticator;
 import java.net.PasswordAuthentication;
+import java.util.ArrayList;
+import java.util.List;
 import javafx.event.ActionEvent;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
@@ -215,7 +222,7 @@ public class TradingCalculatorView extends VBox {
 
         Parent maxCargo = numericTextfield("Max cargo units");
 
-        Parent startingMoney = numericTextfield("Starting money");
+        Parent maxtrades = numericTextfield("Max trades");
 
         Parent currencyCB = currencyComboBox();
 
@@ -233,18 +240,47 @@ public class TradingCalculatorView extends VBox {
                 alert.showAndWait();
                 return;
             }
+            
+            TextField ttrades = (TextField) maxtrades.getChildrenUnmodifiable().get(1);
+            TextField tcap = (TextField) maxCargo.getChildrenUnmodifiable().get(1);
+            
+            int trades = 1;
+            
+            if(!ttrades.getText().isEmpty()) {
+                trades = Integer.parseInt(ttrades.getText());
+            }
+     
 
-            String ship = cb.getSelectionModel().getSelectedItem().getItem();
+            String shipName = cb.getSelectionModel().getSelectedItem().getItem();
+            
+            Ship ship = Database.getShips().stream().filter(s -> s.getName().equals(shipName)).findFirst().get();
+            
+            int cap = ship.getCapacity();
+            
+            if(!tcap.getText().isEmpty()) {
+                cap = Math.min(Integer.parseInt(tcap.getText()), cap);
+            }
+            
+            String json = getBestPath(trades, cap);
+
+            Gson g = new Gson();
+        
+            JsonArray arr = g.fromJson(json, JsonArray.class);
+        
+            resultsList.getItems().clear();
+            
+            for(int i = 0;i < arr.size();i++) { 
+                resultsList.getItems().add(g.fromJson(arr.get(i), TradeRoute.class).toString());
+            }
             
             
-
         });
 
         HBox hbox = new HBox();
         hbox.setSpacing(200);
         // hbox.setAlignment(Pos.CENTER);
 
-        hbox.getChildren().addAll(selectShip, maxCargo, startingMoney, currencyCB);
+        hbox.getChildren().addAll(selectShip, maxCargo, maxtrades, currencyCB);
 
         Text text = new Text("\n\n");
 
@@ -257,12 +293,6 @@ public class TradingCalculatorView extends VBox {
 
         resultsList = new ListView<>();
         // resultsList.setStyle("-fx-background-color: rgb(50, 50, 50);");
-
-        resultsList.getItems().addAll(
-                "Result::1",
-                "Result::2",
-                "Result::3"
-        );
 
         resultsList.setMinHeight(100);
         resultsList.setMinWidth(1920);
@@ -282,6 +312,12 @@ public class TradingCalculatorView extends VBox {
         ext.ws.currency.XigniteCurrencies service = new ext.ws.currency.XigniteCurrencies();
         ext.ws.currency.XigniteCurrenciesSoap port = service.getXigniteCurrenciesSoap();
         return port.convertRealTimeValue(from, to, amount);
+    }
+
+    private static String getBestPath(int jumps, int capacity) {
+        ext.ws.PathFindingWS_Service service = new ext.ws.PathFindingWS_Service();
+        ext.ws.PathFindingWS port = service.getPathFindingWSPort();
+        return port.getBestPath(jumps, capacity);
     }
 
 }

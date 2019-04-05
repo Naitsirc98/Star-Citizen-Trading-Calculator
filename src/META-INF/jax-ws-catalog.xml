@@ -2,4 +2,6 @@
 <catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog" prefer="system">
     <system systemId="http://www.worldtimeserver.com/wtsservice/localtime.asmx?WSDL" uri="wsdl/www.worldtimeserver.com/wtsservice/localtime.asmx.wsdl"/>
     <system systemId="http://www.xignite.com/xCurrencies.asmx?wsdl" uri="wsdl/www.xignite.com/xCurrencies.asmx.wsdl"/>
+    <system systemId="http://ws.docencia.ces.siani.es/a07/path-finding-ws/PathFindingWS?WSDL" uri="wsdl/ws.docencia.ces.siani.es/a07/path-finding-ws/PathFindingWS.wsdl"/>
+    <system systemId="http://ws.docencia.ces.siani.es/a07/path-finding-ws/PathFindingWS?xsd=1" uri="wsdl/ws.docencia.ces.siani.es/a07/path-finding-ws/PathFindingWS.xsd_1.xsd"/>
 </catalog>
