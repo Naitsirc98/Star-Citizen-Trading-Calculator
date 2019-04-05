@@ -1,7 +1,10 @@
 package app.views;
 
 import app.ComboBoxItemWrapper;
+import ext.ws.currency.ExchangeConversion;
 import game.Database;
+import java.net.Authenticator;
+import java.net.PasswordAuthentication;
 import javafx.event.ActionEvent;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
@@ -125,9 +128,8 @@ public class TradingCalculatorView extends VBox {
         Parent container = comboBox(name, table, column);
 
         @SuppressWarnings("unchecked")
-        ComboBox<ComboBoxItemWrapper<String>> cb =
-                (ComboBox<ComboBoxItemWrapper<String>>) 
-                container.getChildrenUnmodifiable().get(1);
+        ComboBox<ComboBoxItemWrapper<String>> cb
+                = (ComboBox<ComboBoxItemWrapper<String>>) container.getChildrenUnmodifiable().get(1);
 
         cb.setCellFactory(param -> {
 
@@ -188,6 +190,23 @@ public class TradingCalculatorView extends VBox {
         return container;
     }
 
+    private Parent currencyComboBox() {
+
+        VBox box = new VBox();
+
+        Label label = Utils.text("Choose currency", Font.font(24), Color.WHITESMOKE);
+
+        ComboBox<String> cb = new ComboBox<>();
+
+        cb.getItems().addAll("Dollars", "Euros", "Pounds");
+
+        cb.getSelectionModel().select(0);
+
+        box.getChildren().addAll(label, cb);
+
+        return box;
+    }
+
     private void createInputSection() {
 
         Label title = Utils.text("Trade details", Font.font(40), Color.DARKCYAN);
@@ -198,14 +217,15 @@ public class TradingCalculatorView extends VBox {
 
         Parent startingMoney = numericTextfield("Starting money");
 
+        Parent currencyCB = currencyComboBox();
+
         Button button = new Button("Calculate");
-        
+
         button.setOnAction((ActionEvent e) -> {
-            
-            ComboBox<ComboBoxItemWrapper<String>> cb = (ComboBox<ComboBoxItemWrapper<String>>)
-                    selectShip.getChildrenUnmodifiable().get(1);
-            
-            if(cb.getSelectionModel().getSelectedItem() == null) {
+
+            ComboBox<ComboBoxItemWrapper<String>> cb = (ComboBox<ComboBoxItemWrapper<String>>) selectShip.getChildrenUnmodifiable().get(1);
+
+            if (cb.getSelectionModel().getSelectedItem() == null) {
                 Alert alert = new Alert(AlertType.ERROR);
                 alert.setTitle("Error");
                 alert.setHeaderText("Ship not selected");
@@ -213,17 +233,18 @@ public class TradingCalculatorView extends VBox {
                 alert.showAndWait();
                 return;
             }
-            
+
             String ship = cb.getSelectionModel().getSelectedItem().getItem();
             
+            
+
         });
-        
 
         HBox hbox = new HBox();
         hbox.setSpacing(200);
         // hbox.setAlignment(Pos.CENTER);
 
-        hbox.getChildren().addAll(selectShip, maxCargo, startingMoney);
+        hbox.getChildren().addAll(selectShip, maxCargo, startingMoney, currencyCB);
 
         Text text = new Text("\n\n");
 
@@ -247,6 +268,20 @@ public class TradingCalculatorView extends VBox {
         resultsList.setMinWidth(1920);
 
         getChildren().add(resultsList);
+    }
+
+    private static ExchangeConversion convertRealTimeValue(java.lang.String from, java.lang.String to, double amount) {
+
+        Authenticator.setDefault(new Authenticator() {
+            @Override
+            protected PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication("_token", "cc488369-d2fd-42bb-ae85-81b79e4cd1d9".toCharArray());
+            }
+        });
+
+        ext.ws.currency.XigniteCurrencies service = new ext.ws.currency.XigniteCurrencies();
+        ext.ws.currency.XigniteCurrenciesSoap port = service.getXigniteCurrenciesSoap();
+        return port.convertRealTimeValue(from, to, amount);
     }
 
 }
